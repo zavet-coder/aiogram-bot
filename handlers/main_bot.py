@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import (
@@ -11,16 +12,18 @@ from aiogram.types import (
 )
 import aiohttp
 
-router = Router()  # Только Router, без Bot и Dispatcher!
+# Загружаем переменные окружения здесь
+load_dotenv()
+
+router = Router()
 
 # Токены из переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "6915077397"))
 
-if not BOT_TOKEN or not ADMIN_BOT_TOKEN:
-    raise ValueError("Токены не найдены в переменных окружения!")
-
+# Убираем проверку на наличие токенов в main_bot.py
+# (проверка будет в main.py)
 
 # ========== ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ ==========
 def get_main_reply_keyboard():
