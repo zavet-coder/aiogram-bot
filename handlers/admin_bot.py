@@ -79,7 +79,6 @@ async def any_message(message: Message):
         await message.answer("⛔ Доступ запрещен")
 
 
-# ========== ЗАПУСК ==========
 async def main():
     dp.include_router(router)
     print(f"🚀 Админ-бот запущен! Админ ID: {ADMIN_ID}")

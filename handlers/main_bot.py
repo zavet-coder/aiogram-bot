@@ -1,5 +1,5 @@
 import os
-from aiogram import Bot, Dispatcher, Router, F
+from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import (
     Message,
@@ -9,20 +9,17 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
-import asyncio
 import aiohttp
 
-# Токен из переменных окружения Railway
+router = Router()  # Только Router, без Bot и Dispatcher!
+
+# Токены из переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN")  # Токен второго бота
+ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "6915077397"))
 
 if not BOT_TOKEN or not ADMIN_BOT_TOKEN:
     raise ValueError("Токены не найдены в переменных окружения!")
-
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-router = Router()
 
 
 # ========== ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ ==========
@@ -59,8 +56,8 @@ def get_donate_keyboard():
 def get_def_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Бесплатный дефф", callback_data="info_more2")],
-            [InlineKeyboardButton(text="Платный дефф", callback_data="info_more3")]
+            [KeyboardButton(text="Бесплатный дефф", callback_data="info_more2")],
+            [KeyboardButton(text="Платный дефф", callback_data="info_more3")]
         ]
     )
     return keyboard
@@ -69,8 +66,8 @@ def get_def_keyboard():
 def get_dox_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Обычный деанон", callback_data="dox_normal")],
-            [InlineKeyboardButton(text="Подробный + цепочка", callback_data="dox_detailed")]
+            [KeyboardButton(text="Обычный деанон", callback_data="dox_normal")],
+            [KeyboardButton(text="Подробный + цепочка", callback_data="dox_detailed")]
         ]
     )
     return keyboard
@@ -133,7 +130,6 @@ SERVICES = {
 async def send_to_admin_bot(user_id, username, text, photo_url=None):
     async with aiohttp.ClientSession() as session:
         if photo_url:
-            # Отправляем фото
             await session.post(
                 f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/sendPhoto",
                 json={
@@ -150,7 +146,6 @@ async def send_to_admin_bot(user_id, username, text, photo_url=None):
                 }
             )
         else:
-            # Отправляем текст
             await session.post(
                 f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/sendMessage",
                 json={
@@ -178,10 +173,6 @@ async def start(message: Message):
     )
 
 
-# ========== ВСЯ ТВОЯ ЛОГИКА СЮДА ==========
-# [ВСТАВЬ СЮДА ВСЕ ТВОИ ОБРАБОТЧИКИ ИЗ ТВОЕГО КОДА]
-# def_handler, dox_handler, swat_handler, crypto_*, donate_* и т.д.
-
 # ========== КРИПТА ==========
 @router.callback_query(lambda c: c.data == "crypto_def")
 async def crypto_payment_def(callback: CallbackQuery):
@@ -202,7 +193,8 @@ async def crypto_payment_def(callback: CallbackQuery):
     await callback.answer()
 
 
-# [ДОБАВЬ ВСЕ ОСТАЛЬНЫЕ CRYPTO И DONATE ОБРАБОТЧИКИ]
+# [СЮДА ВСТАВЛЯЕШЬ ВСЕ ОСТАЛЬНЫЕ CRYPTO И DONATE ОБРАБОТЧИКИ]
+# @router.callback_query(lambda c: c.data == "crypto_dox") и т.д.
 
 # ========== ОБРАБОТЧИК ПОДТВЕРЖДЕНИЯ ==========
 @router.callback_query(lambda c: c.data.startswith("send_proof_"))
@@ -226,12 +218,13 @@ async def handle_proof(message: Message):
     user_id = message.from_user.id
     username = message.from_user.username or "no_username"
 
-    # Игнорируем сообщения от админа
     if user_id == ADMIN_ID:
         return
 
+    # Получаем доступ к bot из контекста
+    bot = message.bot
+
     if message.photo:
-        # Получаем URL фото
         file = await bot.get_file(message.photo[-1].file_id)
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
 
@@ -258,14 +251,3 @@ async def mess(message: Message):
         return
     await delete_previous_message(message)
     await message.answer("ты шо бальной?")
-
-
-# ========== ЗАПУСК ==========
-async def main():
-    dp.include_router(router)
-    print(f"🚀 Основной бот запущен! Админ ID: {ADMIN_ID}")
-    await dp.start_polling(bot)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
