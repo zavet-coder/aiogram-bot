@@ -61,6 +61,21 @@ def get_dox_keyboard():
     )
     return keyboard
 
+# 👇 ФУНКЦИЯ ДЛЯ УДАЛЕНИЯ СООБЩЕНИЯ
+async def delete_previous_message(message: Message):
+    try:
+        await message.delete()
+    except:
+        pass  # Если не получилось удалить - игнорируем
+
+# 👇 ФУНКЦИЯ ДЛЯ УДАЛЕНИЯ СООБЩЕНИЯ ИЗ CALLBACK
+async def delete_callback_message(callback: CallbackQuery):
+    try:
+        await callback.message.delete()
+    except:
+        pass
+
+
 # 👇 ССЫЛКИ НА ФОТО (вставь свои)
 PHOTO_URLS = {
     "crypto_def": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
@@ -84,6 +99,8 @@ PHOTO_URLS = {
 # Старт
 @router.message(Command("start"))
 async def start(message: Message):
+    # Удаляем предыдущее сообщение
+    await delete_previous_message(message)
     await message.answer(
         "Привет! *Это бот с услугами от @Iouhh_def*\n\nВыбери то что тебе нужно",
         parse_mode="Markdown",
@@ -94,6 +111,8 @@ async def start(message: Message):
 @router.message(Command("def"))
 @router.message(F.text.lower() == "д3ф")
 async def def_handler(message: Message):
+    # Удаляем предыдущее сообщение
+    await delete_previous_message(message)
     await message.answer_photo(
         photo=PHOTO_URLS["def_main"],
         caption="██████╗ ███████╗███████╗\n"
@@ -111,6 +130,8 @@ async def def_handler(message: Message):
 # Бесплатный дефф
 @router.callback_query(lambda c: c.data == "info_more2")
 async def def_free(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["info_more2"],
         caption="[root@localhost]# БЕСПЛАТНЫЙ Д3Ф\n"
@@ -128,6 +149,8 @@ async def def_free(callback: CallbackQuery):
 # Платный дефф
 @router.callback_query(lambda c: c.data == "info_more3")
 async def def_paid(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["info_more3"],
         caption="[root@localhost]# ПЛАТНЫЙ Д3Ф\n"
@@ -147,6 +170,8 @@ async def def_paid(callback: CallbackQuery):
 @router.message(Command("dox"))
 @router.message(F.text.lower() == "д3ан0н")
 async def dox_handler(message: Message):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await message.answer_photo(
         photo=PHOTO_URLS["dox_main"],
         caption="██████╗  ██████╗ ██╗  ██╗\n"
@@ -165,6 +190,8 @@ async def dox_handler(message: Message):
 # Обычный деанон
 @router.callback_query(lambda c: c.data == "dox_normal")
 async def dox_normal(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["dox_normal_main"],
         caption="[root@localhost]# ОБЫЧНЫЙ ДЕАНОН\n"
@@ -185,6 +212,8 @@ async def dox_normal(callback: CallbackQuery):
 # Подробный деанон
 @router.callback_query(lambda c: c.data == "dox_detailed")
 async def dox_detailed(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["dox_detailed_main"],
         caption="[root@localhost]# ПОДРОБНЫЙ ДЕАНОН + ЦЕПОЧКА\n"
@@ -204,6 +233,8 @@ async def dox_detailed(callback: CallbackQuery):
 @router.message(Command("swat"))
 @router.message(F.text.lower() == "св1ттинг")
 async def swat_handler(message: Message):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await message.answer_photo(
         photo=PHOTO_URLS["swat_main"],
         caption="███████╗██╗    ██╗ █████╗ ████████╗\n"
@@ -224,6 +255,8 @@ async def swat_handler(message: Message):
 
 @router.callback_query(lambda c: c.data == "crypto_def")
 async def crypto_payment_def(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_def"],
         caption="[root@localhost]# КРИПТА · DEF\n"
@@ -240,6 +273,8 @@ async def crypto_payment_def(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "crypto_dox")
 async def crypto_payment_dox(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_dox"],
         caption="[root@localhost]# КРИПТА · DOX\n"
@@ -255,6 +290,8 @@ async def crypto_payment_dox(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "crypto_dox_detailed")
 async def crypto_payment_dox_detailed(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_dox_detailed"],
         caption="[root@localhost]# КРИПТА · ПОДРОБНЫЙ DOX\n"
@@ -271,6 +308,8 @@ async def crypto_payment_dox_detailed(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "crypto_swat")
 async def crypto_payment_swat(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_swat"],
         caption="[root@localhost]# КРИПТА · SWAT\n"
@@ -288,6 +327,8 @@ async def crypto_payment_swat(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "donate_def")
 async def donate_payment_def(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_def"],
         caption="[root@localhost]# DONATION · DEF\n"
@@ -304,6 +345,8 @@ async def donate_payment_def(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "donate_dox")
 async def donate_payment_dox(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_dox"],
         caption="[root@localhost]# DONATION · DOX\n"
@@ -319,6 +362,8 @@ async def donate_payment_dox(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "donate_dox_detailed")
 async def donate_payment_dox_detailed(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_dox_detailed"],
         caption="[root@localhost]# DONATION · ПОДРОБНЫЙ DOX\n"
@@ -336,6 +381,8 @@ async def donate_payment_dox_detailed(callback: CallbackQuery):
 
 @router.callback_query(lambda c: c.data == "donate_swat")
 async def donate_payment_swat(callback: CallbackQuery):
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_swat"],
         caption="[root@localhost]# DONATION · SWAT\n"
@@ -353,4 +400,6 @@ async def donate_payment_swat(callback: CallbackQuery):
 # Не команда
 @router.message()
 async def mess(message: Message):
+    # Удаляем предыдущее сообщение
+    await delete_previous_message(message)
     await message.answer("ты шо бальной?")
