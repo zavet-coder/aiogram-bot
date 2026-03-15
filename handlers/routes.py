@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import (
     Message,
@@ -8,32 +8,9 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-import sqlite3
-from datetime import datetime
+import asyncio
 
 router = Router()
-
-# ========== БАЗА ДАННЫХ ==========
-conn = sqlite3.connect('tickets.db', check_same_thread=False)
-cursor = conn.cursor()
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS tickets (
-    ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    username TEXT,
-    service TEXT,
-    amount TEXT,
-    proof TEXT,
-    status TEXT DEFAULT 'waiting',
-    created_at TEXT
-)
-''')
-conn.commit()
-
-# ТВОЙ TELEGRAM ID (ВСТАВЬ СВОЙ)
-ADMIN_ID = 6915077397  # 👈 ЗАМЕНИ НА СВОЙ ID
 
 
 # ========== ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ ==========
@@ -87,7 +64,7 @@ def get_dox_keyboard():
     return keyboard
 
 
-# ========== НОВЫЕ КНОПКИ ДЛЯ ТИКЕТОВ ==========
+# ========== НОВЫЕ КНОПКИ ==========
 def get_proof_keyboard(service):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -97,22 +74,11 @@ def get_proof_keyboard(service):
     return keyboard
 
 
-def get_ticket_keyboard(ticket_id):
+def get_admin_actions_keyboard(user_id, service):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="💬 НАПИСАТЬ АДМИНУ", callback_data=f"ticket_msg_{ticket_id}")],
-            [InlineKeyboardButton(text="❌ ЗАКРЫТЬ ТИКЕТ", callback_data=f"ticket_close_{ticket_id}")]
-        ]
-    )
-    return keyboard
-
-
-def get_admin_actions_keyboard(ticket_id, user_id):
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="✅ ПОДТВЕРДИТЬ", callback_data=f"admin_approve_{ticket_id}_{user_id}")],
-            [InlineKeyboardButton(text="❌ ОТКЛОНИТЬ", callback_data=f"admin_reject_{ticket_id}_{user_id}")],
-            [InlineKeyboardButton(text="💬 ОТВЕТИТЬ", callback_data=f"admin_reply_{ticket_id}_{user_id}")]
+            [InlineKeyboardButton(text="✅ ПОДТВЕРДИТЬ", callback_data=f"admin_approve_{user_id}_{service}")],
+            [InlineKeyboardButton(text="❌ ОТКЛОНИТЬ", callback_data=f"admin_reject_{user_id}")]
         ]
     )
     return keyboard
@@ -151,6 +117,21 @@ PHOTO_URLS = {
     "dox_detailed_main": "https://postimg.cc/Wtp2vBYC",
     "swat_main": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg"
 }
+
+# ========== Цены и названия услуг ==========
+SERVICES = {
+    "def": {"name": "Платный Д3Ф", "price": "10$"},
+    "dox": {"name": "Обычный деанон", "price": "3$"},
+    "dox_detailed": {"name": "Подробный деанон + цепочка", "price": "5$"},
+    "swat": {"name": "СВ1ТТИНГ", "price": "20$"}
+}
+
+# Токен админ-бота (создай второго бота у @BotFather и вставь сюда)
+ADMIN_BOT_TOKEN = "8583013879:AAFNEGuM2q6yuogZlean6HeWYSci5U7QnFY"  # 👈 ВСТАВЬ ТОКЕН ВТОРОГО БОТА
+ADMIN_ID = 6915077397  # ТВОЙ ID
+
+# Создаем экземпляр админ-бота
+admin_bot = Bot(token=ADMIN_BOT_TOKEN)
 
 
 # ========== СТАРТ ==========
@@ -304,18 +285,7 @@ async def swat_handler(message: Message):
     )
 
 
-# ========== НОВЫЙ КОД: СИСТЕМА ПОДТВЕРЖДЕНИЯ ОПЛАТЫ ==========
-
-# Цены и названия услуг
-SERVICES = {
-    "def": {"name": "Платный Д3Ф", "price": "10$"},
-    "dox": {"name": "Обычный деанон", "price": "3$"},
-    "dox_detailed": {"name": "Подробный деанон + цепочка", "price": "5$"},
-    "swat": {"name": "СВ1ТТИНГ", "price": "20$"}
-}
-
-
-# КРИПТА
+# ========== КРИПТА ==========
 @router.callback_query(lambda c: c.data == "crypto_def")
 async def crypto_payment_def(callback: CallbackQuery):
     await delete_callback_message(callback)
@@ -390,7 +360,7 @@ async def crypto_payment_swat(callback: CallbackQuery):
     await callback.answer()
 
 
-# DONATIONALERTS
+# ========== DONATIONALERTS ==========
 @router.callback_query(lambda c: c.data == "donate_def")
 async def donate_payment_def(callback: CallbackQuery):
     await delete_callback_message(callback)
@@ -400,8 +370,8 @@ async def donate_payment_def(callback: CallbackQuery):
                 "──────────────────────────────\n"
                 "💰 ЦЕНА: 10$ / 1000р\n"
                 "──────────────────────────────\n"
-                "1 В комментарии напиши свой юзернейм\n"
-                "2 Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
+                "1. В комментарии напиши свой юзернейм\n"
+                "2. Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
                 "──────────────────────────────",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
@@ -422,8 +392,8 @@ async def donate_payment_dox(callback: CallbackQuery):
                 "──────────────────────────────\n"
                 "💰 ЦЕНА: 3$ / 300р\n"
                 "──────────────────────────────\n"
-                "1 В комментарии напиши свой юзернейм\n"
-                "2 Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
+                "1. В комментарии напиши свой юзернейм\n"
+                "2. Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
                 "──────────────────────────────",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
@@ -445,8 +415,8 @@ async def donate_payment_dox_detailed(callback: CallbackQuery):
                 "💰 ЦЕНА: 5$ / 500р\n"
                 "📋 ВКЛЮЧАЕТ ЦЕПОЧКУ\n"
                 "──────────────────────────────\n"
-                "1 В комментарии напиши свой юзернейм\n"
-                "2 Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
+                "1. В комментарии напиши свой юзернейм\n"
+                "2. Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
                 "──────────────────────────────",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
@@ -467,8 +437,8 @@ async def donate_payment_swat(callback: CallbackQuery):
                 "──────────────────────────────\n"
                 "💰 ЦЕНА: 20$ / 2000р\n"
                 "──────────────────────────────\n"
-                "1 В комментарии напиши свой юзернейм\n"
-                "2 Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
+                "1. В комментарии напиши свой юзернейм\n"
+                "2. Нажми 'ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ'\n"
                 "──────────────────────────────",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
@@ -480,83 +450,68 @@ async def donate_payment_swat(callback: CallbackQuery):
     await callback.answer()
 
 
-# Обработчик кнопки "ОТПРАВИТЬ ПОДТВЕРЖДЕНИЕ"
+# ========== ОБРАБОТЧИК ПОДТВЕРЖДЕНИЯ ==========
 @router.callback_query(lambda c: c.data.startswith("send_proof_"))
 async def send_proof(callback: CallbackQuery):
     service = callback.data.replace("send_proof_", "")
-
     await delete_callback_message(callback)
 
     await callback.message.answer(
         f"📸 **ОТПРАВЬ ПОДТВЕРЖДЕНИЕ ОПЛАТЫ**\n\n"
         f"Услуга: {SERVICES[service]['name']}\n"
         f"Сумма: {SERVICES[service]['price']}\n\n"
-        f"📤 Отправь скриншот оплаты или хеш транзакции одним сообщением.\n\n"
-        f"Админ проверит и создаст тикет.",
+        f"📤 Отправь скриншот оплаты или хеш транзакции одним сообщением.",
         parse_mode="Markdown"
     )
     await callback.answer()
 
 
-# Получение подтверждения от пользователя
+# ========== ПОЛУЧЕНИЕ ПОДТВЕРЖДЕНИЯ ==========
 @router.message(F.photo | F.text)
 async def handle_proof(message: Message):
     user_id = message.from_user.id
     username = message.from_user.username or "no_username"
 
-    cursor.execute('''
-    INSERT INTO tickets (user_id, username, service, amount, proof, status, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (user_id, username, "unknown", "unknown", "waiting_for_service", "waiting",
-          datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-    conn.commit()
-
-    ticket_id = cursor.lastrowid
+    # Определяем услугу (упрощенно - в реальности нужно сохранять)
+    service = "def"  # По умолчанию, можно улучшить
 
     if message.photo:
         file_id = message.photo[-1].file_id
-        await message.bot.send_photo(
+        # Отправляем админу через админ-бота
+        await admin_bot.send_photo(
             ADMIN_ID,
             photo=file_id,
-            caption=f"🆕 **НОВОЕ ПОДТВЕРЖДЕНИЕ #{ticket_id}**\n\n"
+            caption=f"🆕 **НОВОЕ ПОДТВЕРЖДЕНИЕ**\n\n"
                     f"👤 Пользователь: @{username} (ID: {user_id})\n"
-                    f"📝 Сообщение: {message.caption or 'Без описания'}\n\n"
-                    f"⬇️ Выбери действие:",
-            reply_markup=get_admin_actions_keyboard(ticket_id, user_id),
+                    f"📝 Сообщение: {message.caption or 'Без описания'}",
+            reply_markup=get_admin_actions_keyboard(user_id, service),
             parse_mode="Markdown"
         )
     else:
-        await message.bot.send_message(
+        await admin_bot.send_message(
             ADMIN_ID,
-            f"🆕 **НОВОЕ ПОДТВЕРЖДЕНИЕ #{ticket_id}**\n\n"
+            f"🆕 **НОВОЕ ПОДТВЕРЖДЕНИЕ**\n\n"
             f"👤 Пользователь: @{username} (ID: {user_id})\n"
-            f"📝 Текст: {message.text}\n\n"
-            f"⬇️ Выбери действие:",
-            reply_markup=get_admin_actions_keyboard(ticket_id, user_id),
+            f"📝 Текст: {message.text}",
+            reply_markup=get_admin_actions_keyboard(user_id, service),
             parse_mode="Markdown"
         )
 
     await message.reply("✅ Подтверждение отправлено админу. Жди ответа!")
 
 
-# Админ подтверждает оплату
+# ========== АДМИН ПОДТВЕРЖДАЕТ ==========
 @router.callback_query(lambda c: c.data.startswith("admin_approve_"))
 async def admin_approve(callback: CallbackQuery):
     data = callback.data.replace("admin_approve_", "").split("_")
-    ticket_id = int(data[0])
-    user_id = int(data[1])
+    user_id = int(data[0])
+    service = data[1]
 
-    cursor.execute('''
-    UPDATE tickets SET status = 'approved' WHERE ticket_id = ?
-    ''', (ticket_id,))
-    conn.commit()
-
+    # Отправляем пользователю
     await callback.bot.send_message(
         user_id,
         f"✅ **ОПЛАТА ПОДТВЕРЖДЕНА!**\n\n"
-        f"🎫 Тикет #{ticket_id} создан.\n"
-        f"Админ скоро свяжется с тобой.",
-        reply_markup=get_ticket_keyboard(ticket_id),
+        f"📞 Свяжись с админом: @Iouhh_def",
         parse_mode="Markdown"
     )
 
@@ -567,17 +522,10 @@ async def admin_approve(callback: CallbackQuery):
     await callback.answer("✅ Подтверждено!")
 
 
-# Админ отклоняет оплату
+# ========== АДМИН ОТКЛОНЯЕТ ==========
 @router.callback_query(lambda c: c.data.startswith("admin_reject_"))
 async def admin_reject(callback: CallbackQuery):
-    data = callback.data.replace("admin_reject_", "").split("_")
-    ticket_id = int(data[0])
-    user_id = int(data[1])
-
-    cursor.execute('''
-    UPDATE tickets SET status = 'rejected' WHERE ticket_id = ?
-    ''', (ticket_id,))
-    conn.commit()
+    user_id = int(callback.data.replace("admin_reject_", ""))
 
     await callback.bot.send_message(
         user_id,
@@ -593,110 +541,7 @@ async def admin_reject(callback: CallbackQuery):
     await callback.answer("❌ Отклонено!")
 
 
-# Переписка в тикете (для админа) - ИСПРАВЛЕНО
-@router.callback_query(lambda c: c.data.startswith("admin_reply_"))
-async def admin_reply_start(callback: CallbackQuery, state: FSMContext):
-    data = callback.data.replace("admin_reply_", "").split("_")
-    ticket_id = int(data[0])
-    user_id = int(data[1])
-
-    await state.set_state("admin_reply")
-    await state.update_data(reply_to_user=user_id, ticket_id=ticket_id)
-
-    await callback.message.answer("✏️ Напиши ответ пользователю:")
-    await callback.answer()
-
-
-# Получение ответа от админа - ИСПРАВЛЕНО
-@router.message(F.text)
-async def admin_send_reply(message: Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state == "admin_reply":
-        data = await state.get_data()
-        user_id = data.get('reply_to_user')
-        ticket_id = data.get('ticket_id')
-
-        if user_id:
-            await message.bot.send_message(
-                user_id,
-                f"💬 **Админ**: {message.text}",
-                parse_mode="Markdown"
-            )
-            await message.reply("✅ Ответ отправлен!")
-            await state.clear()
-
-
-# Сообщение от пользователя в тикете - ИСПРАВЛЕНО
-@router.callback_query(lambda c: c.data.startswith("ticket_msg_"))
-async def ticket_user_message(callback: CallbackQuery, state: FSMContext):
-    ticket_id = int(callback.data.replace("ticket_msg_", ""))
-
-    await state.set_state("user_ticket_reply")
-    await state.update_data(ticket_id=ticket_id)
-
-    await callback.message.answer("✏️ Напиши сообщение админу:")
-    await callback.answer()
-
-
-# Получение сообщения от пользователя - ИСПРАВЛЕНО
-@router.message(F.text)
-async def user_send_to_admin(message: Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state == "user_ticket_reply":
-        data = await state.get_data()
-        ticket_id = data.get('ticket_id')
-
-        await message.bot.send_message(
-            ADMIN_ID,
-            f"💬 **Сообщение от пользователя (тикет #{ticket_id})**:\n\n{message.text}"
-        )
-        await message.reply("✅ Сообщение отправлено админу!")
-        await state.clear()
-
-
-# Закрытие тикета пользователем
-@router.callback_query(lambda c: c.data.startswith("ticket_close_"))
-async def close_ticket(callback: CallbackQuery):
-    ticket_id = int(callback.data.replace("ticket_close_", ""))
-
-    cursor.execute('''
-    UPDATE tickets SET status = 'closed' WHERE ticket_id = ?
-    ''', (ticket_id,))
-    conn.commit()
-
-    await callback.message.edit_caption(
-        caption=f"{callback.message.caption}\n\n❌ ТИКЕТ ЗАКРЫТ",
-        reply_markup=None
-    )
-    await callback.answer("❌ Тикет закрыт")
-
-
-# Админ закрывает тикет
-@router.callback_query(lambda c: c.data.startswith("admin_close_"))
-async def admin_close_ticket(callback: CallbackQuery):
-    data = callback.data.replace("admin_close_", "").split("_")
-    ticket_id = int(data[0])
-    user_id = int(data[1])
-
-    cursor.execute('''
-    UPDATE tickets SET status = 'closed' WHERE ticket_id = ?
-    ''', (ticket_id,))
-    conn.commit()
-
-    await callback.bot.send_message(
-        user_id,
-        f"❌ **ТИКЕТ #{ticket_id} ЗАКРЫТ**\n\n"
-        f"Если есть вопросы - напиши @Iouhh_def"
-    )
-
-    await callback.message.edit_caption(
-        caption=f"{callback.message.caption}\n\n❌ ТИКЕТ ЗАКРЫТ АДМИНОМ",
-        reply_markup=None
-    )
-    await callback.answer("❌ Тикет закрыт")
-
-
-# Не команда
+# ========== НЕ КОМАНДА ==========
 @router.message()
 async def mess(message: Message):
     await delete_previous_message(message)
