@@ -170,8 +170,8 @@ async def def_paid(callback: CallbackQuery):
 @router.message(Command("dox"))
 @router.message(F.text.lower() == "д3ан0н")
 async def dox_handler(message: Message):
-    # Удаляем предыдущее сообщение с кнопками
-    await delete_callback_message(callback)
+    # Удаляем предыдущее сообщение пользователя
+    await delete_previous_message(message)  # ✅ Исправлено
     await message.answer_photo(
         photo=PHOTO_URLS["dox_main"],
         caption="██████╗  ██████╗ ██╗  ██╗\n"
@@ -186,6 +186,7 @@ async def dox_handler(message: Message):
                 "──────────────────────────────",
         reply_markup=get_dox_keyboard()
     )
+
 
 # Обычный деанон
 @router.callback_query(lambda c: c.data == "dox_normal")
@@ -233,8 +234,8 @@ async def dox_detailed(callback: CallbackQuery):
 @router.message(Command("swat"))
 @router.message(F.text.lower() == "св1ттинг")
 async def swat_handler(message: Message):
-    # Удаляем предыдущее сообщение с кнопками
-    await delete_callback_message(callback)
+    # Удаляем предыдущее сообщение пользователя
+    await delete_previous_message(message)  # ✅ Исправлено
     await message.answer_photo(
         photo=PHOTO_URLS["swat_main"],
         caption="███████╗██╗    ██╗ █████╗ ████████╗\n"
@@ -400,6 +401,6 @@ async def donate_payment_swat(callback: CallbackQuery):
 # Не команда
 @router.message()
 async def mess(message: Message):
-    # Удаляем предыдущее сообщение
-    await delete_previous_message(message)
+    # Удаляем предыдущее сообщение с кнопками
+    await delete_callback_message(callback)
     await message.answer("ты шо бальной?")
