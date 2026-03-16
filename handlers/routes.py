@@ -11,18 +11,20 @@ from aiogram.types import (
 
 router = Router()
 
-# ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ (НЕ МЕНЯЛ)
+
+# ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ
 def get_main_reply_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="Д3Ф")],
-            [KeyboardButton(text="Д3АН0Н"), KeyboardButton(text="СВ1ТТИНГ")]
+            [KeyboardButton(text="Д3АН0Н"), KeyboardButton(text="Д0Н0С")],  # Д0Н0С вместо СВ1ТТИНГ
+            [KeyboardButton(text="СВ1ТТИНГ"), KeyboardButton(text="🌐 САЙТ")]  # Кнопка сайта
         ],
         resize_keyboard=True
     )
     return keyboard
 
-# ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ
+
 def get_payment_keyboard(service_type: str):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -32,7 +34,7 @@ def get_payment_keyboard(service_type: str):
     )
     return keyboard
 
-# ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ
+
 def get_donate_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -41,7 +43,7 @@ def get_donate_keyboard():
     )
     return keyboard
 
-# ТВОИ ОРИГИНАЛЬНЫЕ КНОПКИ
+
 def get_def_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -51,7 +53,7 @@ def get_def_keyboard():
     )
     return keyboard
 
-# НОВАЯ КЛАВИАТУРА ДЛЯ ДЕАНОНА (НО СТИЛЬ КНОПОК ТВОЙ)
+
 def get_dox_keyboard():
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -61,12 +63,14 @@ def get_dox_keyboard():
     )
     return keyboard
 
+
 # 👇 ФУНКЦИЯ ДЛЯ УДАЛЕНИЯ СООБЩЕНИЯ
 async def delete_previous_message(message: Message):
     try:
         await message.delete()
     except:
-        pass  # Если не получилось удалить - игнорируем
+        pass
+
 
 # 👇 ФУНКЦИЯ ДЛЯ УДАЛЕНИЯ СООБЩЕНИЯ ИЗ CALLBACK
 async def delete_callback_message(callback: CallbackQuery):
@@ -76,15 +80,17 @@ async def delete_callback_message(callback: CallbackQuery):
         pass
 
 
-# 👇 ССЫЛКИ НА ФОТО (вставь свои)
+# 👇 ССЫЛКИ НА ФОТО
 PHOTO_URLS = {
     "crypto_def": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "crypto_dox": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "crypto_dox_detailed": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
+    "crypto_donos": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "crypto_swat": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "donate_def": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "donate_dox": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "donate_dox_detailed": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
+    "donate_donos": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "donate_swat": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "info_more2": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "info_more3": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
@@ -92,14 +98,14 @@ PHOTO_URLS = {
     "dox_main": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "dox_normal_main": "https://postimg.cc/v1pnfyqs",
     "dox_detailed_main": "https://postimg.cc/Wtp2vBYC",
+    "donos_main": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
     "swat_main": "https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg"
 }
 
+
 # ========== СТАРТ ==========
-# Старт
 @router.message(Command("start"))
 async def start(message: Message):
-    # Удаляем предыдущее сообщение
     await delete_previous_message(message)
     await message.answer(
         "Привет! *Это бот с услугами от @Iouhh_def*\n\nВыбери то что тебе нужно",
@@ -107,11 +113,11 @@ async def start(message: Message):
         reply_markup=get_main_reply_keyboard()
     )
 
+
 # ========== Д3Ф ==========
 @router.message(Command("def"))
 @router.message(F.text.lower() == "д3ф")
 async def def_handler(message: Message):
-    # Удаляем предыдущее сообщение
     await delete_previous_message(message)
     await message.answer_photo(
         photo=PHOTO_URLS["def_main"],
@@ -127,10 +133,9 @@ async def def_handler(message: Message):
         reply_markup=get_def_keyboard()
     )
 
-# Бесплатный дефф
+
 @router.callback_query(lambda c: c.data == "info_more2")
 async def def_free(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["info_more2"],
@@ -146,10 +151,9 @@ async def def_free(callback: CallbackQuery):
     )
     await callback.answer()
 
-# Платный дефф
+
 @router.callback_query(lambda c: c.data == "info_more3")
 async def def_paid(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["info_more3"],
@@ -166,12 +170,12 @@ async def def_paid(callback: CallbackQuery):
     )
     await callback.answer()
 
+
 # ========== Д3АН0Н ==========
 @router.message(Command("dox"))
 @router.message(F.text.lower() == "д3ан0н")
 async def dox_handler(message: Message):
-    # Удаляем предыдущее сообщение пользователя
-    await delete_previous_message(message)  # ✅ Исправлено
+    await delete_previous_message(message)
     await message.answer_photo(
         photo=PHOTO_URLS["dox_main"],
         caption="██████╗  ██████╗ ██╗  ██╗\n"
@@ -188,10 +192,8 @@ async def dox_handler(message: Message):
     )
 
 
-# Обычный деанон
 @router.callback_query(lambda c: c.data == "dox_normal")
 async def dox_normal(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["dox_normal_main"],
@@ -210,10 +212,9 @@ async def dox_normal(callback: CallbackQuery):
     )
     await callback.answer()
 
-# Подробный деанон
+
 @router.callback_query(lambda c: c.data == "dox_detailed")
 async def dox_detailed(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["dox_detailed_main"],
@@ -230,12 +231,39 @@ async def dox_detailed(callback: CallbackQuery):
     )
     await callback.answer()
 
+
+# ========== Д0Н0С (7$) ==========
+@router.message(Command("donos"))
+@router.message(F.text.lower() == "д0нос")
+@router.message(F.text.lower() == "донос")
+async def donos_handler(message: Message):
+    await delete_previous_message(message)
+    await message.answer_photo(
+        photo=PHOTO_URLS["donos_main"],
+        caption="██████╗  ██████╗ ███╗   ██╗ ██████╗ ███████╗\n"
+                "██╔══██╗██╔═══██╗████╗  ██║██╔═══██╗██╔════╝\n"
+                "██║  ██║██║   ██║██╔██╗ ██║██║   ██║███████╗\n"
+                "██║  ██║██║   ██║██║╚██╗██║██║   ██║╚════██║\n"
+                "██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║\n"
+                "╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝\n\n"
+                "[root@localhost]# ИНФОРМАЦИОННАЯ АТАКА\n"
+                "──────────────────────────────\n"
+                "▸ ДОНОС РОДСТВЕННИКАМ\n"
+                "▸ ДОНОС КОЛЛЕГАМ ПО РАБОТЕ\n"
+                "▸ ДОНОС НА УЧЕБУ\n"
+                "▸ КОМПРОМЕТИРУЮЩАЯ ИНФОРМАЦИЯ\n"
+                "──────────────────────────────\n"
+                "💰 ЦЕНА: 7$\n"
+                "──────────────────────────────",
+        reply_markup=get_payment_keyboard("donos")
+    )
+
+
 # ========== СВ1ТТИНГ ==========
 @router.message(Command("swat"))
 @router.message(F.text.lower() == "св1ттинг")
 async def swat_handler(message: Message):
-    # Удаляем предыдущее сообщение пользователя
-    await delete_previous_message(message)  # ✅ Исправлено
+    await delete_previous_message(message)
     await message.answer_photo(
         photo=PHOTO_URLS["swat_main"],
         caption="███████╗██╗    ██╗ █████╗ ████████╗\n"
@@ -252,11 +280,11 @@ async def swat_handler(message: Message):
         reply_markup=get_payment_keyboard("swat")
     )
 
+
 # ========== КРИПТА ==========
 
 @router.callback_query(lambda c: c.data == "crypto_def")
 async def crypto_payment_def(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_def"],
@@ -272,9 +300,9 @@ async def crypto_payment_def(callback: CallbackQuery):
     )
     await callback.answer()
 
+
 @router.callback_query(lambda c: c.data == "crypto_dox")
 async def crypto_payment_dox(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_dox"],
@@ -289,9 +317,9 @@ async def crypto_payment_dox(callback: CallbackQuery):
     )
     await callback.answer()
 
+
 @router.callback_query(lambda c: c.data == "crypto_dox_detailed")
 async def crypto_payment_dox_detailed(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_dox_detailed"],
@@ -307,9 +335,28 @@ async def crypto_payment_dox_detailed(callback: CallbackQuery):
     )
     await callback.answer()
 
+
+# 👇 ДОНОС 7$ (КРИПТА)
+@router.callback_query(lambda c: c.data == "crypto_donos")
+async def crypto_payment_donos(callback: CallbackQuery):
+    await delete_callback_message(callback)
+    await callback.message.answer_photo(
+        photo=PHOTO_URLS["crypto_donos"],
+        caption="[root@localhost]# КРИПТА · ДОНОС\n"
+                "──────────────────────────────\n"
+                "USDT TRC20:\n"
+                "TGrtRCizSghyrp8pjZsMb5pc31v9JsRfyF\n"
+                "──────────────────────────────\n"
+                "💵 СУММА: 7 USDT\n"
+                "📋 РОДСТВЕННИКИ + КОЛЛЕГИ + ФЕЙК КОМПРОМАТ\n"
+                "──────────────────────────────\n"
+                "✉️ @Iouhh_def"
+    )
+    await callback.answer()
+
+
 @router.callback_query(lambda c: c.data == "crypto_swat")
 async def crypto_payment_swat(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["crypto_swat"],
@@ -324,11 +371,11 @@ async def crypto_payment_swat(callback: CallbackQuery):
     )
     await callback.answer()
 
+
 # ========== DONATIONALERTS ==========
 
 @router.callback_query(lambda c: c.data == "donate_def")
 async def donate_payment_def(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_def"],
@@ -337,16 +384,16 @@ async def donate_payment_def(callback: CallbackQuery):
                 "💰 ЦЕНА: 10$ / 1000р\n"
                 "──────────────────────────────\n"
                 "Обязательно:\n"
-                "1. Пишешь в причине свой юз\n" 
+                "1. Пишешь в причине свой юз\n"
                 "──────────────────────────────\n"
                 "✉️ @Iouhh_def",
         reply_markup=get_donate_keyboard()
     )
     await callback.answer()
 
+
 @router.callback_query(lambda c: c.data == "donate_dox")
 async def donate_payment_dox(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_dox"],
@@ -354,16 +401,16 @@ async def donate_payment_dox(callback: CallbackQuery):
                 "──────────────────────────────\n"
                 "💰 ЦЕНА: 3$ / 300р\n"
                 "──────────────────────────────\n"
-                "1. Пишешь в причине свой юз\n" 
+                "1. Пишешь в причине свой юз\n"
                 "──────────────────────────────\n"
                 "✉️ @Iouhh_def",
         reply_markup=get_donate_keyboard()
     )
     await callback.answer()
 
+
 @router.callback_query(lambda c: c.data == "donate_dox_detailed")
 async def donate_payment_dox_detailed(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_dox_detailed"],
@@ -373,16 +420,35 @@ async def donate_payment_dox_detailed(callback: CallbackQuery):
                 "📋 ВКЛЮЧАЕТ ЦЕПОЧКУ\n"
                 "──────────────────────────────\n"
                 "Обязательно:\n"
-                "1. Пишешь в причине свой юз\n" 
+                "1. Пишешь в причине свой юз\n"
                 "──────────────────────────────\n"
                 "✉️ @Iouhh_def",
         reply_markup=get_donate_keyboard()
     )
     await callback.answer()
 
+
+# 👇 ДОНОС 7$ (DONATE)
+@router.callback_query(lambda c: c.data == "donate_donos")
+async def donate_payment_donos(callback: CallbackQuery):
+    await delete_callback_message(callback)
+    await callback.message.answer_photo(
+        photo=PHOTO_URLS["donate_donos"],
+        caption="[root@localhost]# DONATION · ДОНОС\n"
+                "──────────────────────────────\n"
+                "💰 ЦЕНА: 7$ / 700р\n"
+                "📋 РОДСТВЕННИКИ + КОЛЛЕГИ + КОМПРОМАТ\n"
+                "──────────────────────────────\n"
+                "1. Пишешь в причине свой юз\n"
+                "──────────────────────────────\n"
+                "✉️ @Iouhh_def",
+        reply_markup=get_donate_keyboard()
+    )
+    await callback.answer()
+
+
 @router.callback_query(lambda c: c.data == "donate_swat")
 async def donate_payment_swat(callback: CallbackQuery):
-    # Удаляем предыдущее сообщение с кнопками
     await delete_callback_message(callback)
     await callback.message.answer_photo(
         photo=PHOTO_URLS["donate_swat"],
@@ -391,16 +457,44 @@ async def donate_payment_swat(callback: CallbackQuery):
                 "💰 ЦЕНА: 20$ / 2000р\n"
                 "──────────────────────────────\n"
                 "Обязательно:\n"
-                "1. Пишешь в причине свой юз\n" 
+                "1. Пишешь в причине свой юз\n"
                 "──────────────────────────────\n"
                 "✉️ @Iouhh_def",
         reply_markup=get_donate_keyboard()
     )
     await callback.answer()
 
-# Не команда
+
+# ========== РЕКЛАМА САЙТА ==========
+@router.message(Command("site"))
+@router.message(F.text.lower() == "сайт")
+@router.message(F.text.lower() == "🌐 сайт")
+async def site_handler(message: Message):
+    await delete_previous_message(message)
+
+    site_button = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🌐 ПЕРЕЙТИ НА САЙТ", url="https://7ouhdef.up.railway.app/")],
+            [InlineKeyboardButton(text="📋 ПОДРОБНЕЕ ОБ УСЛУГАХ", url="https://7ouhdef.up.railway.app/services")]
+        ]
+    )
+
+    await message.answer_photo(
+        photo="https://i.pinimg.com/736x/e4/6c/93/e46c93b203d60622025ff16364353616.jpg",
+        caption="[root@localhost]# 7OUH.DEF - ОФИЦИАЛЬНЫЙ САЙТ\n"
+                "──────────────────────────────\n"
+                "🌐 На сайте ты можешь:\n"
+                "▸ Подробнее ознакомиться с услугами\n"
+                "▸ Узнать цены и способы оплаты\n"
+                "▸ Почитать FAQ\n"
+                "🔗 Переходи по ссылке ниже\n"
+                "──────────────────────────────",
+        reply_markup=site_button
+    )
+
+
+# ========== НЕ КОМАНДА ==========
 @router.message()
 async def mess(message: Message):
-    # Удаляем предыдущее сообщение с кнопками
-    await delete_callback_message(callback)
+    await delete_previous_message(message)
     await message.answer("ты шо бальной?")
