@@ -234,7 +234,7 @@ async def dox_detailed(callback: CallbackQuery):
 
 # ========== Д0Н0С (7$) ==========
 @router.message(Command("donos"))
-@router.message(F.text.lower() == "д0нос")
+@router.message(F.text.lower() == "д0н0с")
 @router.message(F.text.lower() == "донос")
 async def donos_handler(message: Message):
     await delete_previous_message(message)
